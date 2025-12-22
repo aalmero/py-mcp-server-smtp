@@ -1,0 +1,12 @@
+[project]
+name = "py-mcp-server-smtp"
+version = "0.1.0"
+description = "SMTP MCP Server with HTTP and stdio transport support"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.13.3",
+    "hypothesis>=6.0.0",
+    "uvicorn>=0.24.0",
+    "fastapi>=0.104.0",
+]
