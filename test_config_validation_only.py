@@ -6,7 +6,8 @@ Test only the configuration validation logic without any network operations.
 import sys
 sys.path.insert(0, '.')
 
-from server import SMTPConfig, EmailService
+#from server import SMTPConfig, EmailService
+from smtp import SMTPConfig, EmailService
 
 
 def test_basic_functionality():

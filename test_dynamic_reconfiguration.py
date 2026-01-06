@@ -15,8 +15,13 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, '.')
 
 from server import (
-    SMTPConfig, EmailService, get_email_service, reset_email_service,
-    reload_smtp_configuration, reconnect_smtp_servers
+    get_email_service, 
+    reset_email_service, 
+    reload_smtp_configuration,
+    reconnect_smtp_servers)
+from smtp import (
+    SMTPConfig, 
+    EmailService
 )
 
 
@@ -75,7 +80,7 @@ async def test_reload_smtp_configuration_tool():
                     return False  # Simulate connection failure
                 
                 # Patch the SMTPClient.connect method
-                with patch('server.SMTPClient.connect', new=mock_connect):
+                with patch('smtp.SMTPClient.connect', new=mock_connect):
                     # Test the underlying service method directly
                     result = await service.reload_configuration()
                     
@@ -132,7 +137,7 @@ async def test_reconnect_smtp_servers_tool():
                 return False  # Simulate connection failure
             
             # Patch the SMTPClient.connect method
-            with patch('server.SMTPClient.connect', new=mock_connect):
+            with patch('smtp.SMTPClient.connect', new=mock_connect):
                 # Test the underlying service method directly
                 result = await service.reconnect_smtp_servers()
                 

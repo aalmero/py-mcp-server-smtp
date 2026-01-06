@@ -20,10 +20,16 @@ from email.mime.text import MIMEText
 # Add the current directory to Python path
 sys.path.insert(0, '.')
 
+from smtp import (
+    SMTPConfig, EmailService, EmailRequest, Attachment
+)
+
 from server import (
-    SMTPConfig, EmailService, EmailRequest, Attachment, 
-    get_email_service, reset_email_service,
-    send_email, test_smtp_connection, get_smtp_status
+    get_email_service, 
+    reset_email_service, 
+    send_email, 
+    test_smtp_connection, 
+    get_smtp_status
 )
 
 

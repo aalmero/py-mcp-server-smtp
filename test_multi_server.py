@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 # Add the current directory to Python path
 sys.path.insert(0, '.')
 
-from server import SMTPConfig, MultiServerSMTPClient, EmailService, load_smtp_configs
+from smtp import SMTPConfig, MultiServerSMTPClient, EmailService, load_smtp_configs
 
 
 def test_smtp_config_multi_loading():
