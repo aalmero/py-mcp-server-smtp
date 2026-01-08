@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  smtp-mcp-server:
+    build: .
+    container_name: smtp-mcp-server
+    restart: unless-stopped
+    
+    # Environment variables for SMTP configuration
+    environment:
+      # Required SMTP configuration
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      
+      # Optional SMTP configuration
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+      - SMTP_USE_SSL=${SMTP_USE_SSL:-false}
+      - SMTP_TIMEOUT=${SMTP_TIMEOUT:-30}
+      - SMTP_MAX_RETRIES=${SMTP_MAX_RETRIES:-3}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      
+      # Logging configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    
+    # For stdio transport (default)
+    stdin_open: true
+    tty: true
+    
+    # Uncomment for HTTP transport
+    # ports:
+    #   - "8000:8000"
+    # command: ["python", "main.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+  # Example HTTP transport configuration
+  smtp-mcp-server-http:
+    build: .
+    container_name: smtp-mcp-server-http
+    restart: unless-stopped
+    profiles:
+      - http
+    
+    environment:
+      # SMTP configuration (same as above)
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+      - SMTP_USE_SSL=${SMTP_USE_SSL:-false}
+      - SMTP_TIMEOUT=${SMTP_TIMEOUT:-30}
+      - SMTP_MAX_RETRIES=${SMTP_MAX_RETRIES:-3}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    
+    ports:
+      - "${HTTP_PORT:-8000}:8000"
+    
+    command: ["python", "main.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
