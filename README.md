@@ -31,8 +31,66 @@ A Python-based MCP (Model Context Protocol) server that provides SMTP email func
 ### Prerequisites
 - Python 3.12 or higher
 - UV package manager (recommended) or pip
+- Docker (optional, for containerized deployment)
 
-### Using UV (Recommended)
+### Using Docker (Recommended for Production)
+
+The easiest way to run the SMTP MCP Server is using Docker:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd py-mcp-server-smtp
+
+# Copy environment configuration
+cp .env.example .env
+# Edit .env with your SMTP settings
+
+# Build and run with Docker Compose (stdio transport)
+docker-compose up --build
+
+# Or run with HTTP transport
+docker-compose --profile http up --build smtp-mcp-server-http
+```
+
+#### Docker Build Options
+
+```bash
+# Build the Docker image
+docker build -t smtp-mcp-server .
+
+# Run with stdio transport (default)
+docker run -it --rm \
+  --env-file .env \
+  smtp-mcp-server
+
+# Run with HTTP transport
+docker run -it --rm \
+  --env-file .env \
+  -p 8000:8000 \
+  smtp-mcp-server \
+  python main.py --transport http --host 0.0.0.0 --port 8000
+```
+
+#### Docker Environment Variables
+
+When using Docker, set your SMTP configuration in a `.env` file:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your settings
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_USE_TLS=true
+SMTP_FROM_EMAIL=your-email@gmail.com
+LOG_LEVEL=INFO
+```
+
+### Using UV (Recommended for Development)
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -396,6 +454,157 @@ attachment = Attachment.from_bytes(
     content=b"Report content here",
     mime_type="text/plain"
 )
+```
+
+## Deployment
+
+### Docker Deployment
+
+#### Production Deployment with Docker Compose
+
+1. **Prepare Environment**:
+```bash
+# Clone and setup
+git clone <repository-url>
+cd py-mcp-server-smtp
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your production SMTP settings
+```
+
+2. **Deploy with Stdio Transport** (for MCP clients):
+```bash
+# Start the service
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
+```
+
+3. **Deploy with HTTP Transport** (for web clients):
+```bash
+# Start HTTP service
+docker-compose --profile http up -d smtp-mcp-server-http
+
+# Access at http://localhost:8000/mcp
+curl http://localhost:8000/mcp
+```
+
+#### Docker Security Best Practices
+
+The provided Dockerfile follows security best practices:
+- Runs as non-root user (`appuser`)
+- Uses Python slim image to minimize attack surface
+- Includes health checks for monitoring
+- Sets resource limits in docker-compose.yml
+- Excludes sensitive files via .dockerignore
+
+#### Kubernetes Deployment
+
+For Kubernetes deployment, create these manifests:
+
+```yaml
+# smtp-mcp-server-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smtp-mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smtp-mcp-server
+  template:
+    metadata:
+      labels:
+        app: smtp-mcp-server
+    spec:
+      containers:
+      - name: smtp-mcp-server
+        image: smtp-mcp-server:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SMTP_HOST
+          valueFrom:
+            secretKeyRef:
+              name: smtp-config
+              key: host
+        - name: SMTP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: smtp-config
+              key: username
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: smtp-config
+              key: password
+        args: ["python", "main.py", "--transport", "http", "--host", "0.0.0.0"]
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+```
+
+### Traditional Deployment
+
+For traditional server deployment:
+
+```bash
+# Install system dependencies
+sudo apt-get update
+sudo apt-get install python3.12 python3.12-venv
+
+# Create application user
+sudo useradd -r -s /bin/false smtp-mcp-server
+
+# Setup application
+sudo mkdir -p /opt/smtp-mcp-server
+sudo chown smtp-mcp-server:smtp-mcp-server /opt/smtp-mcp-server
+
+# Deploy application
+sudo -u smtp-mcp-server git clone <repo> /opt/smtp-mcp-server
+cd /opt/smtp-mcp-server
+sudo -u smtp-mcp-server python3.12 -m venv .venv
+sudo -u smtp-mcp-server .venv/bin/pip install -r requirements.txt
+
+# Create systemd service
+sudo tee /etc/systemd/system/smtp-mcp-server.service << EOF
+[Unit]
+Description=SMTP MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=smtp-mcp-server
+WorkingDirectory=/opt/smtp-mcp-server
+Environment=PATH=/opt/smtp-mcp-server/.venv/bin
+EnvironmentFile=/opt/smtp-mcp-server/.env
+ExecStart=/opt/smtp-mcp-server/.venv/bin/python main.py --transport http --host 0.0.0.0
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Start service
+sudo systemctl enable smtp-mcp-server
+sudo systemctl start smtp-mcp-server
 ```
 
 ## Testing
