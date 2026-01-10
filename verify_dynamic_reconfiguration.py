@@ -8,8 +8,9 @@ without triggering any network operations.
 
 import sys
 import inspect
+import asyncio
 
-def verify_implementation():
+async def verify_implementation():
     """Verify that dynamic reconfiguration has been implemented."""
     print("Verifying dynamic reconfiguration implementation...\n")
     
@@ -66,7 +67,9 @@ def verify_implementation():
         # Check MCP tools exist
         try:
             from server import mcp
-            tools = mcp.list_tools()
+            import asyncio
+
+            tools = await mcp.get_tools()
             tool_names = [tool.name for tool in tools]
             
             expected_tools = ['reload_smtp_configuration', 'reconnect_smtp_servers']
@@ -127,9 +130,9 @@ def verify_implementation():
 
 def main():
     """Run verification."""
-    success = verify_implementation()
-    return 0 if success else 1
+    return asyncio.run(verify_implementation())
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    success = main()
+    sys.exit(0 if success else 1)
