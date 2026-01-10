@@ -49,7 +49,8 @@ def test_imports():
         
         # Test that the service has the thread lock
         assert hasattr(service, '_config_lock'), "Service should have _config_lock"
-        assert isinstance(service._config_lock, threading.RLock), "Lock should be RLock"
+        # Check that it's an RLock by checking its type name
+        assert type(service._config_lock).__name__ == 'RLock', "Lock should be RLock"
         
         print("✓ Thread safety mechanisms are present")
         
