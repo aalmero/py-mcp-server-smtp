@@ -5,6 +5,7 @@ Test script to verify SMTP MCP server startup and configuration.
 
 import os
 import sys
+import asyncio
 
 # Set test environment variables
 os.environ['SMTP_HOST'] = 'smtp.test.com'
@@ -14,7 +15,7 @@ os.environ['SMTP_PASSWORD'] = 'password'
 os.environ['SMTP_USE_TLS'] = 'true'
 os.environ['SMTP_FROM_EMAIL'] = 'test@test.com'
 
-def test_server_startup():
+async def test_server_startup():
     """Test that the server can be imported and initialized."""
     try:
         print("Testing SMTP MCP Server startup...")
@@ -33,10 +34,10 @@ def test_server_startup():
         print(f'✓ FastMCP server name: {mcp.name}')
         
         # Test that tools are registered
-        tools = mcp.list_tools()
+        tools = await mcp.get_tools()
         print(f'✓ Registered tools: {len(tools)} tools')
-        for tool in tools:
-            print(f'  - {tool.name}')
+        for tool_name, tool_info in tools.items ():
+            print(f'  - {tool_name}')
         
         print('✓ Server is ready to run')
         return True
@@ -47,6 +48,10 @@ def test_server_startup():
         traceback.print_exc()
         return False
 
+def main():
+    """Run the async test."""
+    return asyncio.run(test_server_startup())
+
 if __name__ == "__main__":
-    success = test_server_startup()
+    success = main()
     sys.exit(0 if success else 1)
