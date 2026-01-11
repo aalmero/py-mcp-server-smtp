@@ -519,6 +519,36 @@ asyncio.run(test())
 "
 ```
 
+### Common Test Issues
+
+#### FastMCP API AttributeError
+If you encounter `AttributeError: 'FastMCP' object has no attribute 'list_tools'`:
+
+**Problem**: Using incorrect FastMCP API method
+**Solution**: Use `get_tools()` instead of `list_tools()`, and handle it as an async method:
+
+```python
+# Wrong (old API)
+tools = mcp.list_tools()
+
+# Correct (current API)
+tools = await mcp.get_tools()
+```
+
+#### Threading isinstance TypeError
+If you encounter `TypeError: isinstance() arg 2 must be a type`:
+
+**Problem**: Using `isinstance(obj, threading.RLock)` - `threading.RLock` is a function, not a type
+**Solution**: Check the type name instead:
+
+```python
+# Wrong
+isinstance(lock, threading.RLock)
+
+# Correct
+type(lock).__name__ == 'RLock'
+```
+
 ## Development
 
 ### Project Structure
