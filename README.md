@@ -99,6 +99,8 @@ cd py-mcp-server-smtp
 # Install dependencies
 uv sync
 
+note: if getting 'invalid peer certificate: UnknownIssuer', add --native-tls or --trusted-host as workaround if needed.
+
 # Activate virtual environment
 source .venv/bin/activate
 ```
@@ -763,11 +765,16 @@ type(lock).__name__ == 'RLock'
 ### Project Structure
 ```
 py-mcp-server-smtp/
+├── Dockerfile              # Docker config
+├── docker-compose.yml      # Docker Compose config
+├── .env.example            # Docker Environment sample config
 ├── main.py                 # Application entry point
 ├── server.py              # Main MCP server implementation
+├── smtp.py                # SMTP Server functionality
 ├── test_integration.py    # Integration tests
 ├── test_multi_server.py   # Multi-server tests
 ├── test_dynamic_reconfiguration.py  # Configuration tests
+├── test_server_startup.py # Server Startup test
 ├── pyproject.toml         # Project configuration
 ├── uv.lock               # Dependency lock file
 └── README.md             # This file
